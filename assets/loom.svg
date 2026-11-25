@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2A2724"/>
+      <stop offset="1" stop-color="#1A1917"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#C39352"/>
+      <stop offset="1" stop-color="#A87C3A"/>
+    </linearGradient>
+  </defs>
+  <rect x="48" y="48" width="928" height="928" rx="270" fill="url(#bg)"/>
+  <rect x="48" y="48" width="928" height="928" rx="270" fill="none" stroke="#FFFFFF" stroke-opacity=".06" stroke-width="6"/>
+  <!-- eyes -->
+  <rect x="318" y="332" width="92" height="184" rx="46" fill="#F5F4F2"/>
+  <rect x="614" y="332" width="92" height="184" rx="46" fill="#F5F4F2"/>
+  <!-- cheeks -->
+  <ellipse cx="248" cy="604" rx="64" ry="38" fill="#B08A8A" opacity=".6"/>
+  <ellipse cx="776" cy="604" rx="64" ry="38" fill="#B08A8A" opacity=".6"/>
+  <!-- cursor smile -->
+  <rect x="418" y="626" width="188" height="70" rx="35" fill="url(#gold)"/>
+</svg>

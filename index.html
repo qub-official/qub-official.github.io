@@ -1,0 +1,790 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>qub · 큐브</title>
+<meta name="description" content="qub is a bug bounty hunter on HackerOne focused on broken access control, and the builder of KellyBlue and calm, free apps for Windows.">
+<meta property="og:title" content="qub · 큐브">
+<meta property="og:description" content="Bug bounty hunter on HackerOne, builder of KellyBlue and ten free apps for Windows.">
+<meta name="theme-color" content="#F5F4F2">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 6 56 19v26L32 58 8 45V19z' fill='%23E9E4E0'/%3E%3Cpath d='M32 6 56 19 32 32 8 19z' fill='%23FDEBB0'/%3E%3Cpath d='M32 32v26L8 45V19z' fill='%23B08A8A'/%3E%3Cpath d='M32 32 56 19v26L32 58z' fill='%23A87C3A'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&family=Gaegu:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --white:#FFFFFF;
+  --cream:#F5F4F2;
+  --sand:#E9E4E0;
+  --blush:#EEE5E0;
+  --ink:#000000;
+  --ink-soft:#0C0F14;
+  --gray:#2E2F33;
+  --gold:#A87C3A;
+  --mauve:#B08A8A;
+  --butter:#FDEBB0;
+  --taupe:#B49A85;
+
+  --bg:var(--cream);
+  --surface:var(--white);
+  --surface-2:var(--blush);
+  --line:#DDD5CF;
+  --text:var(--ink-soft);
+  --muted:#5E5A57;
+  --accent:var(--gold);
+  --accent-2:var(--mauve);
+  --mark:var(--butter);
+  --shadow:0 1px 0 rgba(12,15,20,.04), 0 12px 32px -18px rgba(12,15,20,.25);
+  --radius:22px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0C0F14; --surface:#15181E; --surface-2:#1C1F25; --line:#2A2D33;
+    --text:#F5F4F2; --muted:#B4ACA6; --accent:#C99A57; --accent-2:#C9A3A3;
+    --mark:rgba(253,235,176,.22); --shadow:0 12px 32px -18px rgba(0,0,0,.7);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C0F14; --surface:#15181E; --surface-2:#1C1F25; --line:#2A2D33;
+  --text:#F5F4F2; --muted:#B4ACA6; --accent:#C99A57; --accent-2:#C9A3A3;
+  --mark:rgba(253,235,176,.22); --shadow:0 12px 32px -18px rgba(0,0,0,.7);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:"Noto Sans KR",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:16px;line-height:1.7;overflow-x:hidden;
+  background-image:radial-gradient(var(--line) 1px, transparent 1px);
+  background-size:22px 22px;background-attachment:fixed;
+}
+img{display:block;max-width:100%}
+a{color:inherit}
+.wrap{width:100%;max-width:1120px;margin-inline:auto;padding-inline:clamp(20px,6vw,72px)}
+main{padding-bottom:24px}
+.brand{display:inline-block;width:1em;height:1em;flex:none;background:currentColor;
+  -webkit-mask:var(--src) center/contain no-repeat;mask:var(--src) center/contain no-repeat}
+.b-h1{--src:url('data:image/svg+xml,%3Csvg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"%3E%3Ctitle%3EHackerOne%3C/title%3E%3Cpath d="M7.207 0c-.4836 0-.8774.1018-1.1823.3002-.3044.2003-.4592.4627-.4592.7798v21.809c0 .2766.1581.5277.4752.7609.315.2335.7031.3501 1.1664.3501.4427 0 .8306-.1166 1.1678-.3501.3352-.231.5058-.4843.5058-.761V1.0815c0-.319-.1623-.5769-.4893-.7813C8.0644.1018 7.6702 0 7.207 0zm9.5234 8.662c-.4836 0-.8717.0981-1.1683.3007l-4.439 2.7822c-.1988.1861-.2841.4687-.2473.855.0342.3826.2108.747.5238 1.0907.3145.346.6662.5626 1.0684.6547.3963.0899.6973.041.8962-.143l1.7551-1.0951v9.7817c0 .2767.1522.5278.4607.761.3007.2335.6873.3501 1.1504.3501.463 0 .863-.1166 1.1983-.3501.3371-.2332.5058-.4843.5058-.761V9.7381c0-.3193-.165-.577-.4898-.7754-.3252-.2026-.7288-.3007-1.2143-.3007z"/%3E%3C/svg%3E')}
+.b-vercel{--src:url('data:image/svg+xml,%3Csvg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"%3E%3Ctitle%3EVercel%3C/title%3E%3Cpath d="M24 22.525H0l12-21.05 12 21.05z"/%3E%3C/svg%3E')}
+.b-toyota{--src:url('data:image/svg+xml,%3Csvg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"%3E%3Ctitle%3EToyota%3C/title%3E%3Cpath d="M12 3.848C5.223 3.848 0 7.298 0 12c0 4.702 5.224 8.152 12 8.152S24 16.702 24 12c0-4.702-5.223-8.152-12-8.152zm7.334 3.839c0 1.08-1.725 1.913-4.488 2.246-.26-2.58-1.005-4.279-1.963-4.913 2.948.184 6.45 1.227 6.45 2.667zM12 16.401c-.96 0-1.746-1.5-1.808-4.389.577.047 1.18.072 1.808.072.628 0 1.23-.025 1.807-.072-.061 2.89-.847 4.389-1.807 4.389zm0-6.308c-.59 0-1.155-.019-1.69-.054.261-1.728.92-3.15 1.69-3.15.77 0 1.428 1.422 1.689 3.15-.535.034-1.099.054-1.689.054zm-.882-5.075c-.956.633-1.706 2.333-1.964 4.915C6.391 9.6 4.665 8.767 4.665 7.687c0-1.44 3.504-2.49 6.453-2.669zM2.037 11.68a5.265 5.265 0 011.048-3.164c.27 1.547 2.522 2.881 5.972 3.37V12c0 3.772.879 6.203 2.087 6.97-5.107-.321-9.107-3.48-9.107-7.29zm10.823 7.29c1.207-.767 2.087-3.198 2.087-6.97v-.115c3.447-.488 5.704-1.826 5.972-3.37a5.26 5.26 0 011.049 3.165c-.004 3.81-4.008 6.969-9.109 7.29z"/%3E%3C/svg%3E')}
+.b-x{--src:url('data:image/svg+xml,%3Csvg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"%3E%3Ctitle%3EX%3C/title%3E%3Cpath d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/%3E%3C/svg%3E')}
+.b-intigriti{--src:url('data:image/svg+xml,%3Csvg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"%3E%3Ctitle%3EIntigriti%3C/title%3E%3Cpath d="M19.9133 6.0364c-1.1056.574-3.7632 1.924-5.8999 3.0084-3.7738 1.9134-7.0267 3.593-7.1117 3.6674-.032.0213.0106.404.085.8611.574 3.4123 2.1473 6.4526 4.316 8.3555l.691.6165.6909-.5953c1.839-1.6158 3.3273-4.2202 4.0502-7.0585.1488-.5634.2764-1.3076.287-1.6477l.0213-.6166-2.9553-1.5308-.7335.372c-.3933.202-.7229.3934-.7229.4253 0 .0319.6698.3933 1.4883.7973l1.4882.7335-.0637.3827c-.3934 2.1686-1.6158 4.7517-2.9234 6.1868l-.606.6698-.4464-.4253c-.9248-.893-1.9347-2.615-2.5194-4.3053-.3295-.946-.7229-2.4343-.659-2.4875.0212-.0212 3.0402-1.5414 6.7077-3.391l6.6546-3.3699.2126.3508c.6697 1.0843.7229 2.5407.1382 3.7313-.6484 1.3181-1.754 1.9879-3.3698 2.0623l-.978.0425-.0638.3189c-.0319.1807-.0638.4784-.0638.6803 0 .319.032.3615.3827.4253.574.1063 1.7647-.032 2.4556-.287 1.6796-.6273 2.849-1.9135 3.3699-3.7313.4464-1.5627-.032-3.423-1.265-4.8475-.2127-.2445-.4465-.4464-.5103-.4464-.0744.0106-1.0312.4783-2.1473 1.0524zM1.3739 5.4836C.1833 6.8762-.2632 8.6196.1514 10.2354c.4677 1.8071 1.6583 3.136 3.3698 3.7737.691.2552 1.8816.3934 2.4556.287.4146-.085.4571-.202.319-1.031l-.0638-.3934-.978-.0425c-1.6265-.0744-2.7214-.7442-3.3805-2.0836-.574-1.148-.5315-2.5406.085-3.6143l.2658-.4571 3.8482 1.956 3.8588 1.956.7123-.3508c.3933-.202.7122-.404.7122-.4465 0-.0638-9.3441-4.805-9.4823-4.805-.0425 0-.2658.2233-.4996.4997zm6.3144-3.6144l-.2657.404.2338.0638c.691.1807 1.6903.9567 2.1048 1.637l.2127.3402-.5953.8824c-.5953.893-1.212 2.0304-1.212 2.2323 0 .0957.9568.6379 1.1375.6379.0426 0 .287-.404.5316-.8824.5315-1.0417.9567-1.6583 1.6583-2.4024l.4996-.5315.4465.4783c.7016.7548 1.2119 1.4883 1.6902 2.4237.2445.4678.4678.8824.489.9143.0638.0744 1.2013-.5422 1.2013-.6591 0-.1914-.6485-1.3713-1.2225-2.2111l-.5953-.8717.2232-.3508c.3295-.5316 1.2012-1.2757 1.754-1.499.2658-.1169.4784-.255.4784-.3082 0-.0638-.1063-.2445-.2445-.4146l-.2445-.2976-.5209.2445c-.3083.1488-.8717.5846-1.3394 1.0524l-.808.8079-.659-.606-.6485-.6165-.6484.6165-.6591.6166-.7548-.7654C9.3254 2.1882 8.2943 1.476 8.018 1.476c-.032 0-.1808.1807-.3296.3933z"/%3E%3C/svg%3E')}
+.serif{font-family:"Gowun Batang",Georgia,serif}
+.hand{font-family:"Gaegu",cursive}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+.mark{background:linear-gradient(transparent 55%,var(--mark) 55%);padding:0 .12em}
+.ko{font-family:"Noto Sans KR",sans-serif;color:var(--accent-2);font-weight:500}
+
+/* nav */
+header.nav{position:sticky;top:0;z-index:20;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  background:color-mix(in srgb,var(--bg) 82%,transparent);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;gap:16px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:700;letter-spacing:-.02em;font-size:20px}
+.logo small{font-weight:400;font-size:13px;color:var(--muted)}
+.nav ul{display:flex;gap:4px;list-style:none}
+.nav ul a{display:block;text-decoration:none;font-size:14px;padding:6px 12px;border-radius:99px;color:var(--muted)}
+.nav ul a:hover{background:var(--surface);color:var(--text)}
+.theme{border:1px solid var(--line);background:var(--surface);color:var(--text);width:38px;height:38px;border-radius:50%;cursor:pointer;display:grid;place-items:center;flex:none}
+.theme svg{width:18px;height:18px}
+@media (max-width:760px){.nav ul{display:none}}
+
+/* hero */
+.hero{padding:72px 0 56px}
+.hero .wrap{display:grid;grid-template-columns:1.25fr .9fr;gap:48px;align-items:center}
+.hello{display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:6px 14px 6px 8px;font-size:14px;box-shadow:var(--shadow)}
+.hello .dot{width:22px;height:22px;border-radius:50%;background:var(--butter);display:grid;place-items:center;font-size:12px}
+h1{font-family:"Gowun Batang",Georgia,serif;font-weight:700;font-size:clamp(36px,5.6vw,62px);line-height:1.15;letter-spacing:-.02em;margin:22px 0 18px}
+h1 em{font-style:normal;color:var(--accent)}
+.lead{font-size:18px;color:var(--muted);max-width:560px}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-weight:500;font-size:15px;padding:12px 20px;border-radius:99px;border:1px solid var(--line);background:var(--surface);transition:transform .15s ease, box-shadow .15s ease}
+.btn:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.btn.primary{background:var(--text);color:var(--bg);border-color:var(--text)}
+.btn svg{width:16px;height:16px}
+
+/* ticket card */
+.ticket{position:relative;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line);overflow:hidden;transform:rotate(1.5deg)}
+.ticket .top{padding:26px 26px 22px;background:linear-gradient(160deg,var(--blush),var(--surface) 70%)}
+.ticket .row{display:flex;justify-content:space-between;align-items:flex-start}
+.ticket .label{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.ticket .name{font-family:"Gowun Batang",serif;font-size:44px;font-weight:700;line-height:1;margin-top:6px}
+.ticket .name span{font-size:18px;color:var(--accent-2);margin-left:6px;font-family:"Noto Sans KR",sans-serif;font-weight:500}
+.stamp{width:78px;height:78px;border-radius:50%;border:2px dashed var(--accent);color:var(--accent);display:grid;place-items:center;text-align:center;font-size:10px;font-weight:700;letter-spacing:.1em;line-height:1.3;transform:rotate(-14deg);flex:none}
+.ticket .perf{position:relative;border-top:2px dashed var(--line);margin:0 18px}
+.ticket .perf::before,.ticket .perf::after{content:"";position:absolute;top:-12px;width:22px;height:22px;border-radius:50%;background:var(--bg);border:1px solid var(--line)}
+.ticket .perf::before{left:-31px}.ticket .perf::after{right:-31px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line)}
+.stat{background:var(--surface);padding:18px 22px}
+.stat b{display:block;font-family:"Gowun Batang",serif;font-size:30px;line-height:1.1}
+.stat span{font-size:13px;color:var(--muted)}
+.ticket .note{position:absolute;right:16px;bottom:-4px;font-size:22px;color:var(--accent-2);transform:rotate(-6deg)}
+.sticker{position:absolute;top:-14px;left:-10px;background:var(--butter);color:#0C0F14;font-family:"Gaegu",cursive;font-size:18px;font-weight:700;padding:4px 14px;border-radius:12px;transform:rotate(-8deg);box-shadow:var(--shadow);z-index:2}
+.ticket-holder{position:relative}
+@media (max-width:860px){
+  .hero{padding-top:48px}
+  .hero .wrap{grid-template-columns:1fr}
+  .ticket{transform:none}
+}
+
+/* sections */
+section{padding:64px 0}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:32px;flex-wrap:wrap}
+.eyebrow{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+.eyebrow .num{font-family:"JetBrains Mono",monospace;color:var(--accent);letter-spacing:0}
+h2{font-family:"Gowun Batang",serif;font-size:clamp(28px,4vw,40px);line-height:1.2;letter-spacing:-.01em;margin-top:8px}
+h2 .ko{font-size:.55em;margin-left:10px;vertical-align:middle}
+.head p{color:var(--muted);max-width:420px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+
+/* about */
+.about{display:grid;grid-template-columns:1.3fr 1fr;gap:24px}
+.about .card{padding:32px}
+.about p+p{margin-top:14px}
+.about .big{font-family:"Gowun Batang",serif;font-size:22px;line-height:1.55;color:var(--text)}
+.about .muted{color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-size:13px;padding:6px 12px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line);white-space:nowrap}
+.chip.gold{background:color-mix(in srgb,var(--gold) 14%,var(--surface));border-color:color-mix(in srgb,var(--gold) 35%,var(--line))}
+.chip.rose{background:color-mix(in srgb,var(--mauve) 16%,var(--surface));border-color:color-mix(in srgb,var(--mauve) 40%,var(--line))}
+.side h3{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:500;margin:0 0 12px}
+.side h3:not(:first-child){margin-top:26px}
+.verse{margin-top:26px;padding:16px 18px;border-radius:16px;background:var(--surface-2);font-family:"Gowun Batang",serif;font-size:15px;color:var(--muted)}
+.verse b{color:var(--accent);font-weight:700;letter-spacing:.14em;font-size:12px;display:block;margin-bottom:4px;font-family:"Noto Sans KR",sans-serif}
+@media (max-width:860px){.about{grid-template-columns:1fr}}
+
+/* security */
+.sec-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.focus{padding:22px}
+.focus .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--surface-2);color:var(--accent);margin-bottom:14px}
+.focus .ic svg{width:20px;height:20px}
+.focus h4{font-size:16px;margin-bottom:4px}
+.focus p{font-size:14px;color:var(--muted)}
+.report{margin-top:16px;display:grid;grid-template-columns:1.4fr 1fr;overflow:hidden}
+.report .l{padding:32px}
+.report .r{padding:32px;background:var(--surface-2);border-left:1px dashed var(--line);display:flex;flex-direction:column;gap:14px}
+.tag-live{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;padding:4px 10px;border-radius:99px;background:var(--butter);color:#0C0F14}
+.report h3{font-family:"Gowun Batang",serif;font-size:24px;line-height:1.35;margin:14px 0 10px}
+.report .l p{color:var(--muted)}
+.kv{display:flex;justify-content:space-between;gap:12px;font-size:14px;border-bottom:1px solid var(--line);padding-bottom:10px}
+.kv:last-of-type{border-bottom:0}
+.kv span{color:var(--muted)}
+.kv b{font-weight:500;text-align:right}
+.quote{font-family:"Gaegu",cursive;font-size:24px;color:var(--accent-2);margin-top:auto}
+.thanks{margin-top:16px;display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.th{padding:18px 16px;text-align:center;text-decoration:none;transition:transform .15s ease}
+a.th:hover{transform:translateY(-3px)}
+.th .init{width:52px;height:52px;margin:0 auto 10px;border-radius:50%;display:grid;place-items:center;font-family:"Gowun Batang",serif;font-weight:700;font-size:18px;background:var(--surface-2);color:var(--text)}
+.th .init .brand{font-size:24px}
+.th:hover .init{color:var(--accent)}
+.platforms{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.platform{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;padding:8px 14px;border-radius:99px;background:var(--surface);border:1px solid var(--line);text-decoration:none}
+.platform .brand{font-size:18px}
+a.platform:hover{color:var(--accent)}
+.label .brand,.lbl .brand,.kv .brand{font-size:1.1em;vertical-align:-.15em;margin-right:6px}
+.th b{display:block;font-size:14px}
+.th span{font-size:12px;color:var(--muted)}
+.proof-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin:48px 0 18px}
+.proof-head h3{font-family:"Gowun Batang",serif;font-size:26px;line-height:1.2}
+.proof-head h3 .ko{font-size:15px;margin-left:8px}
+.proof-head p{color:var(--muted);font-size:14px;max-width:440px}
+.proof{columns:3 280px;column-gap:16px}
+.shot{break-inside:avoid;margin:0 0 16px;padding:12px 12px 14px;display:block;width:100%;text-align:left;cursor:zoom-in;font:inherit;color:inherit;transition:transform .15s ease}
+.shot:hover{transform:translateY(-3px) rotate(-.4deg)}
+.shot .frame{background:#FFFFFF;border-radius:12px;border:1px solid #E9E4E0;padding:10px;overflow:hidden}
+.shot img{width:100%;height:auto;margin:0 auto}
+.shot.tiny .frame{padding:26px 10px;display:grid;place-items:center}
+.shot.tiny img{width:auto;max-width:100%;image-rendering:auto}
+.shot .cap{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px;font-size:13px}
+.shot .cap b{font-weight:500}
+.shot .cap span{color:var(--muted);white-space:nowrap;font-size:12px}
+.st{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;padding:3px 10px;border-radius:99px}
+.st::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.st.paid{background:#FDEBB0;color:#7A5A22}
+.st.res{background:#E3EFE3;color:#3E6B45}
+.st.tri{background:#F6E6D6;color:#9A5B23}
+dialog.lb{border:0;padding:0;background:transparent;max-width:min(920px,92vw);margin:auto}
+dialog.lb::backdrop{background:rgba(12,15,20,.72);backdrop-filter:blur(4px)}
+dialog.lb .in{background:#FFFFFF;border-radius:18px;padding:18px;position:relative}
+dialog.lb img{width:100%;height:auto;border-radius:8px}
+dialog.lb p{color:#2E2F33;font-size:14px;margin-top:12px}
+dialog.lb button{position:absolute;top:-14px;right:-14px;width:36px;height:36px;border-radius:50%;border:0;background:#0C0F14;color:#FFFFFF;font-size:18px;cursor:pointer}
+@media (prefers-reduced-motion: reduce){.shot{transition:none}}
+.badges{margin-top:16px;padding:24px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.badges .lbl{font-size:13px;color:var(--muted);margin-right:6px}
+@media (max-width:960px){.sec-grid{grid-template-columns:repeat(2,1fr)}.thanks{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:680px){.report{grid-template-columns:1fr}.report .r{border-left:0;border-top:1px dashed var(--line)}}
+@media (max-width:480px){.sec-grid{grid-template-columns:1fr}.thanks{grid-template-columns:repeat(2,1fr)}}
+
+/* projects */
+.featured{display:grid;grid-template-columns:1fr 1fr;overflow:hidden;margin-bottom:20px}
+.featured .l{padding:36px}
+.featured .r{background:#0C0F14;color:#E9E4E0;padding:28px;font-family:"JetBrains Mono",monospace;font-size:13px;line-height:1.9;position:relative}
+.featured .r .dots{display:flex;gap:6px;margin-bottom:16px}
+.featured .r .dots i{width:10px;height:10px;border-radius:50%;background:#2E2F33}
+.featured .r .dots i:nth-child(1){background:#B08A8A}.featured .r .dots i:nth-child(2){background:#FDEBB0}.featured .r .dots i:nth-child(3){background:#A87C3A}
+.featured .r .c{color:#7d7873}.featured .r .g{color:#FDEBB0}.featured .r .m{color:#D7B4B4}.featured .r .o{color:#D5AC6E}
+.pill{display:inline-block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.featured h3{font-family:"Gowun Batang",serif;font-size:34px;margin:8px 0 12px;line-height:1.2}
+.featured p{color:var(--muted)}
+.featured .chips{margin:20px 0 24px}
+.apps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.app{padding:26px;display:flex;flex-direction:column;transition:transform .2s ease}
+.app:hover{transform:translateY(-4px)}
+.app .top{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.app .icon{width:56px;height:56px;border-radius:16px;background:var(--surface-2);display:grid;place-items:center;flex:none;overflow:hidden}
+.app .icon img{width:44px;height:44px;object-fit:contain}
+.app h4{font-size:20px;line-height:1.2}
+.app h4 .ko{font-size:14px;margin-left:4px}
+.app .kind{font-size:13px;color:var(--muted)}
+.app p{font-size:15px;color:var(--muted);margin-bottom:16px}
+.app ul{list-style:none;font-size:14px;margin-bottom:18px;display:grid;gap:6px}
+.app li{display:flex;gap:8px}
+.app li::before{content:"✿";color:var(--accent-2);font-size:12px;line-height:1.9}
+.app .chips{margin-top:auto;margin-bottom:16px}
+.app .chip{font-size:12px;padding:4px 10px}
+.links{display:flex;gap:14px;font-size:14px;font-weight:500}
+.links a{text-decoration:none;border-bottom:1.5px solid var(--accent);padding-bottom:1px}
+.links a:hover{color:var(--accent)}
+.app.wide{grid-column:span 1}
+@media (max-width:960px){.apps{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:760px){.featured{grid-template-columns:1fr}}
+@media (max-width:600px){.apps{grid-template-columns:1fr}.featured .l{padding:26px}}
+
+/* stack */
+.stack{padding:28px;display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.stack h4{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:500;margin-bottom:10px}
+@media (max-width:860px){.stack{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:480px){.stack{grid-template-columns:1fr}}
+
+/* contact */
+.contact{padding:48px;text-align:center;background:linear-gradient(170deg,var(--surface),var(--surface-2));position:relative;overflow:hidden}
+.contact h2{font-size:clamp(30px,5vw,48px)}
+.contact p{color:var(--muted);max-width:520px;margin:12px auto 28px}
+.contact .cta{justify-content:center}
+.contact .doodle{position:absolute;font-family:"Gaegu",cursive;color:var(--accent-2);font-size:22px}
+.contact .d1{top:22px;left:28px;transform:rotate(-10deg)}
+.contact .d2{bottom:22px;right:28px;transform:rotate(8deg)}
+@media (max-width:600px){.contact{padding:48px 20px}.contact .doodle{display:none}}
+
+footer{padding:36px 0 48px;color:var(--muted);font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(14px);transition:opacity .6s ease, transform .6s ease}
+.reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  .reveal{opacity:1;transform:none;transition:none}
+  .btn,.app,a.th{transition:none}
+}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="qub, home">
+      <svg width="28" height="28" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 6 56 19v26L32 58 8 45V19z" fill="#E9E4E0"/><path d="M32 6 56 19 32 32 8 19z" fill="#FDEBB0"/><path d="M32 32v26L8 45V19z" fill="#B08A8A"/><path d="M32 32 56 19v26L32 58z" fill="#A87C3A"/></svg>
+      qub <small>큐브</small>
+    </a>
+    <ul>
+      <li><a href="#about">About</a></li>
+      <li><a href="#security">Security</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <button class="theme" id="theme" aria-label="Switch light or dark theme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap">
+    <div class="reveal">
+      <span class="hello"><span class="dot">👋</span> 안녕하세요 · hello, I'm qub</span>
+      <h1>I find the doors that <em>should stay locked</em>, and I build calm tools.</h1>
+      <p class="lead">Bug bounty hunter on HackerOne, focused on <span class="mark">broken access control</span>: the checks that decide who is allowed to see what. When I'm not hunting, I build KellyBlue and free, open-source apps for Windows.</p>
+      <div class="cta">
+        <a class="btn primary" href="https://hackerone.com/qub" target="_blank" rel="noopener">
+          <i class="brand b-h1" aria-hidden="true"></i>
+          HackerOne profile
+        </a>
+        <a class="btn" href="#projects">See my projects</a>
+      </div>
+    </div>
+
+    <div class="ticket-holder reveal">
+      <span class="sticker">since 2022 ✦</span>
+      <div class="ticket">
+        <div class="top">
+          <div class="row">
+            <div>
+              <div class="label"><i class="brand b-h1" aria-hidden="true"></i>HackerOne · hunter pass</div>
+              <div class="name">qub<span>큐브</span></div>
+            </div>
+            <div class="stamp">GOD<br>FIRST<br>✝</div>
+          </div>
+          <div class="chips" style="margin-top:18px">
+            <span class="chip gold">Access control</span>
+            <span class="chip rose">Web apps</span>
+            <span class="chip">APIs</span>
+          </div>
+        </div>
+        <div class="perf"></div>
+        <div class="stats">
+          <div class="stat"><b>182</b><span>reputation</span></div>
+          <div class="stat"><b>4.6</b><span>signal</span></div>
+          <div class="stat"><b>#2</b><span>on a private program</span></div>
+          <div class="stat"><b>$1,026</b><span>disclosed at Vercel</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="wrap">
+    <div class="head reveal">
+      <div>
+        <div class="eyebrow"><span class="num">01</span> About</div>
+        <h2>A little about me <span class="ko">소개</span></h2>
+      </div>
+    </div>
+    <div class="about">
+      <div class="card reveal">
+        <p class="big">I'm <b>qub</b>. I've been hunting on HackerOne since 2022, on public and private programs, and I care most about one rule: <span class="mark">revoked access should stay revoked.</span></p>
+        <p class="muted">I test web apps and APIs for authorization flaws: sessions and tokens that outlive their owners, roles that leak data, and checks that run after the data is already gone. Every report I send has a clear proof of concept and steps anyone can reproduce.</p>
+        <p class="muted">I also build software. KellyBlue is my recon automation platform for authorized testing, and my Windows apps (an editor, a terminal, a downloader, a media player, a password manager, a learning Bible, a beat maker and more) are free and designed to feel soft, quiet and fast.</p>
+        <p class="muted">You may know me by my old name, <b>kellyblue</b>. Everywhere I operate now, I'm <b>qub</b>.</p>
+      </div>
+      <div class="card side reveal">
+        <h3>What I hunt</h3>
+        <div class="chips">
+          <span class="chip gold">Broken access control</span>
+          <span class="chip gold">IDOR</span>
+          <span class="chip">Authorization logic</span>
+          <span class="chip">Session &amp; token handling</span>
+          <span class="chip">API security</span>
+          <span class="chip">Recon &amp; asset discovery</span>
+        </div>
+        <h3>What I build with</h3>
+        <div class="chips">
+          <span class="chip rose">Python</span><span class="chip rose">FastAPI</span><span class="chip rose">TypeScript</span>
+          <span class="chip rose">React</span><span class="chip rose">Rust · Tauri</span><span class="chip rose">Electron</span>
+          <span class="chip rose">Docker</span>
+        </div>
+        <div class="verse"><b>GOD FIRST</b>Faith comes first for me. I also create Christian content: videos, articles and teaching resources.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECURITY -->
+<section id="security">
+  <div class="wrap">
+    <div class="head reveal">
+      <div>
+        <div class="eyebrow"><span class="num">02</span> Security</div>
+        <h2>Bug bounty work <span class="ko">보안</span></h2>
+      </div>
+      <div><p>Reports on HackerOne as qub, plus paid findings on Intigriti.</p>
+        <div class="platforms">
+          <a class="platform" href="https://hackerone.com/qub" target="_blank" rel="noopener"><i class="brand b-h1" aria-hidden="true"></i>HackerOne</a>
+          <span class="platform"><i class="brand b-intigriti" aria-hidden="true"></i>Intigriti</span>
+        </div></div>
+    </div>
+
+    <div class="sec-grid">
+      <div class="card focus reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="3"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+        <h4>Access control</h4>
+        <p>Who can see what, and whether removing access really removes it.</p>
+      </div>
+      <div class="card focus reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 9h8M8 13h5"/><path d="M4 5h16v11H9l-5 4z"/></svg></div>
+        <h4>APIs</h4>
+        <p>Endpoints that trust the client more than they should.</p>
+      </div>
+      <div class="card focus reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/></svg></div>
+        <h4>Recon</h4>
+        <p>Mapping assets and attack surface, automated with my own tooling.</p>
+      </div>
+      <div class="card focus reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></div>
+        <h4>Clear reports</h4>
+        <p>Real impact, a working proof of concept, and steps a triager can follow.</p>
+      </div>
+    </div>
+
+    <div class="card report reveal">
+      <div class="l">
+        <span class="tag-live">✦ Publicly disclosed</span>
+        <h3>Revoked deployment collaborator regains access to private comments</h3>
+        <p>At Vercel, a collaborator removed from a deployment could read private comments again after an active collaborator interacted with it. The access check ran after the data was already returned.</p>
+        <div class="links" style="margin-top:20px">
+          <a href="https://hackerone.com/reports/3852102" target="_blank" rel="noopener">Read the report →</a>
+        </div>
+      </div>
+      <div class="r">
+        <div class="kv"><span>Program</span><b><i class="brand b-vercel" aria-hidden="true"></i>Vercel</b></div>
+        <div class="kv"><span>Severity</span><b>Medium (4.8)</b></div>
+        <div class="kv"><span>Weakness</span><b>Check after asset access</b></div>
+        <div class="kv"><span>Bounty</span><b>$1,026</b></div>
+        <div class="kv"><span>Disclosed</span><b>29 Oct 2026</b></div>
+        <div class="quote">revoked access should stay revoked ♡</div>
+      </div>
+    </div>
+
+    <div class="proof-head reveal">
+      <h3>Proof of impact <span class="ko">증거</span></h3>
+      <p>Real bounties and triage updates, earned under my old handle kelly-blue. Program names are blurred to respect their privacy. Click any card to enlarge.</p>
+    </div>
+    <div class="proof">
+      <button class="card shot reveal" data-cap="HackerOne · $500 bounty, with a note from the program team (May 13, 2026)">
+        <div class="frame"><img src="assets/proof/paint_blurred_pixel.png" alt="A program rewarded kelly-blue with a $500 bounty and said the engineering team is working on a fix" loading="lazy"></div>
+        <div class="cap"><span class="st paid">$500 bounty</span><span>May 13, 2026</span></div>
+      </button>
+      <button class="card shot reveal" data-cap="Intigriti · €250 bounty plus a €150 company bonus">
+        <div class="frame"><img src="assets/proof/intigriti-250-150.png" alt="Intigriti: a €250 bounty and a €150 company bonus rewarded to kelly_blue" loading="lazy"></div>
+        <div class="cap"><span class="st paid">€250 + €150 bonus</span><span><i class="brand b-intigriti" aria-hidden="true" style="vertical-align:-.15em"></i> Intigriti</span></div>
+      </button>
+      <button class="card shot reveal" data-cap="HackerOne · Report resolved (January 26, 2026)">
+        <div class="frame"><img src="assets/proof/paint_blurred_pixel_1.png" alt="A program closed kelly-blue's report as Resolved" loading="lazy"></div>
+        <div class="cap"><span class="st res">Resolved</span><span>Jan 26, 2026</span></div>
+      </button>
+      <button class="card shot tiny reveal" data-cap="HackerOne · $500 bounty">
+        <div class="frame"><img src="assets/proof/500-bounty1.png" alt="A program rewarded kelly-blue with a $500 bounty" loading="lazy"></div>
+        <div class="cap"><span class="st paid">$500 bounty</span><span><i class="brand b-h1" aria-hidden="true" style="vertical-align:-.15em"></i> HackerOne</span></div>
+      </button>
+      <button class="card shot reveal" data-cap="HackerOne · Valid report triaged and sent to the vulnerability management team (September 23, 2025)">
+        <div class="frame"><img src="assets/proof/paint_blurred_pixel_4.png" alt="Program staff changed the report status to Triaged and confirmed it is a valid, in-scope report" loading="lazy"></div>
+        <div class="cap"><span class="st tri">Triaged</span><span>Sep 23, 2025</span></div>
+      </button>
+      <button class="card shot reveal" data-cap="HackerOne · Another report resolved (January 26, 2026)">
+        <div class="frame"><img src="assets/proof/paint_blurred_pixel_2.png" alt="A program closed another of kelly-blue's reports as Resolved" loading="lazy"></div>
+        <div class="cap"><span class="st res">Resolved</span><span>Jan 26, 2026</span></div>
+      </button>
+      <button class="card shot reveal" data-cap="HackerOne · Valid report triaged and sent to the vulnerability management team (August 20, 2025)">
+        <div class="frame"><img src="assets/proof/paint_blurred_pixel_3.png" alt="Program staff changed the report status to Triaged and confirmed it is a valid, in-scope report" loading="lazy"></div>
+        <div class="cap"><span class="st tri">Triaged</span><span>Aug 20, 2025</span></div>
+      </button>
+    </div>
+
+    <div class="thanks">
+      <a class="card th reveal" href="https://hackerone.com/vercel" target="_blank" rel="noopener"><div class="init"><i class="brand b-vercel" aria-hidden="true"></i></div><b>Vercel</b><span>Rank #67</span></a>
+      <a class="card th reveal" href="https://hackerone.com/toyota" target="_blank" rel="noopener"><div class="init"><i class="brand b-toyota" aria-hidden="true"></i></div><b>Toyota</b><span>Rank #91</span></a>
+      <a class="card th reveal" href="https://hackerone.com/x" target="_blank" rel="noopener"><div class="init"><i class="brand b-x" aria-hidden="true"></i></div><b>X / xAI</b><span>Thanked</span></a>
+      <a class="card th reveal" href="https://hackerone.com/live_nation" target="_blank" rel="noopener"><div class="init">L</div><b>Live Nation</b><span>Rank #100</span></a>
+      <div class="card th reveal"><div class="init">✦</div><b>Private</b><span>Rank #2</span></div>
+      <div class="card th reveal"><div class="init">✦</div><b>Private</b><span>Rank #67</span></div>
+    </div>
+
+    <div class="card badges reveal">
+      <span class="lbl"><i class="brand b-h1" aria-hidden="true"></i>HackerOne badges</span>
+      <span class="chip gold">A5: Broken Access Control</span>
+      <span class="chip">Publish or Perish</span>
+      <span class="chip">Community Milestone · Level 3</span>
+      <span class="chip">Bounty Hunter</span>
+      <span class="chip">Streaker</span>
+      <span class="chip">Good Samaritan</span>
+      <span class="chip">Insecticide</span>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="wrap">
+    <div class="head reveal">
+      <div>
+        <div class="eyebrow"><span class="num">03</span> Projects</div>
+        <h2>Things I've made <span class="ko">프로젝트</span></h2>
+      </div>
+      <p>A security platform, plus free apps for Windows 10 and 11. They run on your PC, with no account and no tracking.</p>
+    </div>
+
+    <div class="card featured reveal">
+      <div class="l">
+        <span class="pill">Founder · Security platform</span>
+        <h3>KellyBlue</h3>
+        <p>A recon automation platform for authorized security testing. Scanners run in isolated containers and chain together into workflows, scope rules are enforced on every step, and AI agents can drive the whole thing over MCP.</p>
+        <div class="chips">
+          <span class="chip gold">Python</span><span class="chip gold">FastAPI</span><span class="chip gold">React</span><span class="chip gold">Docker</span><span class="chip gold">MCP</span>
+        </div>
+        <div class="links"><a href="https://kellyblue.site" target="_blank" rel="noopener">Visit kellyblue.site →</a></div>
+      </div>
+      <div class="r" aria-hidden="true">
+        <div class="dots"><i></i><i></i><i></i></div>
+        <div><span class="c"># workflow: recon.yml</span></div>
+        <div><span class="m">scope</span>: <span class="g">*.example.com</span></div>
+        <div><span class="m">steps</span>:</div>
+        <div>&nbsp;&nbsp;- <span class="o">subdomains</span> <span class="c"># isolated container</span></div>
+        <div>&nbsp;&nbsp;- <span class="o">probe</span> <span class="c">→ live hosts</span></div>
+        <div>&nbsp;&nbsp;- <span class="o">crawl</span> <span class="c">→ endpoints</span></div>
+        <div>&nbsp;&nbsp;- <span class="o">scan</span> <span class="c">→ findings</span></div>
+        <div><span class="c"># out of scope? blocked.</span></div>
+        <div style="margin-top:10px"><span class="g">✓</span> 4 steps chained · scope enforced</div>
+      </div>
+    </div>
+
+    <div class="apps">
+      <article class="card app reveal">
+        <div class="top">
+          <div class="icon"><img src="assets/coredit.png" alt="" width="44" height="44" loading="lazy"></div>
+          <div><h4>Coredit <span class="ko">코레딧</span></h4><div class="kind">Code &amp; Markdown editor</div></div>
+        </div>
+        <p>A free code, text and Markdown editor built on Monaco, the engine behind VS Code.</p>
+        <ul>
+          <li>Highlighting for 75+ languages</li>
+          <li>Up to four split panels, search across folders</li>
+          <li>Eight color profiles: Cream, Blossom, Matcha…</li>
+        </ul>
+        <div class="chips"><span class="chip">Electron</span><span class="chip">Monaco</span><span class="chip">JavaScript</span></div>
+        <div class="links"><span class="kind">Coming soon</span></div>
+      </article>
+
+      <article class="card app reveal">
+        <div class="top">
+          <div class="icon"><img src="assets/loom.svg" alt="" width="44" height="44" loading="lazy"></div>
+          <div><h4>Loom <span class="ko">룸</span></h4><div class="kind">Terminal for Windows</div></div>
+        </div>
+        <p>A calm, fast terminal with everything from Windows Terminal, wrapped in a soft design.</p>
+        <ul>
+          <li>Tabs, split panes, profiles, quake mode</li>
+          <li>Snippets, saved workspaces, command timing</li>
+          <li>GPU rendering on native ConPTY</li>
+        </ul>
+        <div class="chips"><span class="chip">Rust</span><span class="chip">Tauri 2</span><span class="chip">TypeScript</span><span class="chip">xterm.js</span></div>
+        <div class="links"><a href="https://github.com/qub-official/loom/releases/latest" target="_blank" rel="noopener">Download</a><a href="https://qub-official.github.io/loom/" target="_blank" rel="noopener">Website</a><a href="https://github.com/qub-official/loom" target="_blank" rel="noopener">GitHub</a></div>
+      </article>
+
+      <article class="card app reveal">
+        <div class="top">
+          <div class="icon"><img src="assets/moa.png" alt="" width="44" height="44" loading="lazy"></div>
+          <div><h4>Moa <span class="ko">모아</span></h4><div class="kind">Media downloader</div></div>
+        </div>
+        <p>Videos, music and photos from YouTube, Instagram, TikTok, X and 1000+ sites.</p>
+        <ul>
+          <li>Up to 4K, or audio only up to 320 kbps</li>
+          <li>Instagram profiles, carousels and reels</li>
+          <li>YouTube transcripts as .txt, .srt or .vtt</li>
+        </ul>
+        <div class="chips"><span class="chip">Python</span><span class="chip">yt-dlp</span><span class="chip">FFmpeg</span><span class="chip">pywebview</span></div>
+        <div class="links"><a href="https://github.com/qub-official/moa/releases/latest/download/Moa-Setup.exe" target="_blank" rel="noopener">Download</a><a href="https://qub-official.github.io/moa/" target="_blank" rel="noopener">Website</a><a href="https://github.com/qub-official/moa" target="_blank" rel="noopener">GitHub</a></div>
+      </article>
+
+      <article class="card app reveal">
+        <div class="top">
+          <div class="icon"><img src="assets/youtown.png" alt="" width="44" height="44" loading="lazy"></div>
+          <div><h4>YouTown <span class="ko">유타운</span></h4><div class="kind">Media player</div></div>
+        </div>
+        <p>A lightweight player that finds all your videos, music and photos and plays every format VLC plays.</p>
+        <ul>
+          <li>150+ file types, powered by libVLC</li>
+          <li>Always-on-top mini player</li>
+          <li>Playlists, A→B loop, equalizer, resume</li>
+        </ul>
+        <div class="chips"><span class="chip">Python</span><span class="chip">libVLC</span><span class="chip">Windows shell</span></div>
+        <div class="links"><a href="https://github.com/qub-official/youtown/releases/latest/download/YouTown-Player-Setup.exe" target="_blank" rel="noopener">Download</a><a href="https://qub-official.github.io/youtown/" target="_blank" rel="noopener">Website</a><a href="https://github.com/qub-official/youtown" target="_blank" rel="noopener">GitHub</a></div>
+      </article>
+
+      <article class="card app reveal">
+        <div class="top">
+          <div class="icon"><img src="assets/jamgeum.png" alt="" width="44" height="44" loading="lazy"></div>
+          <div><h4>Jamgeum <span class="ko">잠금</span></h4><div class="kind">Password manager</div></div>
+        </div>
+        <p>An offline, open-source password manager. No account, no cloud, no telemetry.</p>
+        <ul>
+          <li>AES-256-GCM with scrypt key derivation</li>
+          <li>Generator and weak/reused password check</li>
+          <li>Auto-lock and clipboard clean-up</li>
+        </ul>
+        <div class="chips"><span class="chip">Electron</span><span class="chip">Node crypto</span></div>
+        <div class="links"><a href="https://github.com/qub-official/jamgeum/releases/latest/download/Jamgeum-Setup.exe" target="_blank" rel="noopener">Download</a><a href="https://qub-official.github.io/jamgeum/" target="_blank" rel="noopener">Website</a><a href="https://github.com/qub-official/jamgeum" target="_blank" rel="noopener">GitHub</a></div>
+      </article>
+
+      <article class="card app reveal">
+        <div class="top">
+          <div class="icon"><img src="assets/haneul.png" alt="" width="44" height="44" loading="lazy"></div>
+          <div><h4>Haneul Bible <span class="ko">하늘</span></h4><div class="kind">Learning Bible</div></div>
+        </div>
+        <p>The Bible that teaches as you read, fully offline.</p>
+        <ul>
+          <li>Every person, place and key word linked</li>
+          <li>Offline maps, family trees and timelines</li>
+          <li>Reading plans and study notes</li>
+        </ul>
+        <div class="chips"><span class="chip">Electron</span><span class="chip">Python data pipeline</span></div>
+        <div class="links"><a href="https://github.com/qub-official/haneul-bible/releases/latest/download/HaneulBible-Setup.exe" target="_blank" rel="noopener">Download</a><a href="https://qub-official.github.io/haneul-bible/" target="_blank" rel="noopener">Website</a><a href="https://github.com/qub-official/haneul-bible" target="_blank" rel="noopener">GitHub</a></div>
+      </article>
+
+      <article class="card app reveal">
+        <div class="top">
+          <div class="icon"><img src="assets/myrecord.png" alt="" width="44" height="44" loading="lazy"></div>
+          <div><h4>MyRecord <span class="ko">마이레코드</span></h4><div class="kind">Beat maker</div></div>
+        </div>
+        <p>A drag-and-drop beat maker. Apply a style, then customize it.</p>
+        <ul>
+          <li>Step sequencer, piano roll and song view</li>
+          <li>Mixer with per-sound effect chains</li>
+          <li>Export to WAV</li>
+        </ul>
+        <div class="chips"><span class="chip">Electron</span><span class="chip">Web Audio</span></div>
+        <div class="links"><a href="https://github.com/qub-official/myrecord/releases/latest/download/MyRecord-Setup.exe" target="_blank" rel="noopener">Download</a><a href="https://qub-official.github.io/myrecord/" target="_blank" rel="noopener">Website</a><a href="https://github.com/qub-official/myrecord" target="_blank" rel="noopener">GitHub</a></div>
+      </article>
+
+      <article class="card app reveal">
+        <div class="top">
+          <div class="icon"><img src="assets/myproperties.png" alt="" width="44" height="44" loading="lazy"></div>
+          <div><h4>MyProperties <span class="ko">내 PC 도우미</span></h4><div class="kind">Windows toolkit</div></div>
+        </div>
+        <p>A calm little toolkit for your PC.</p>
+        <ul>
+          <li>Folder tree with sizes</li>
+          <li>Every PC property in one place</li>
+          <li>Video to audio, live wallpapers, themes</li>
+        </ul>
+        <div class="chips"><span class="chip">Electron</span><span class="chip">FFmpeg</span></div>
+        <div class="links"><a href="https://github.com/qub-official/myproperties/releases/latest" target="_blank" rel="noopener">Download</a><a href="https://qub-official.github.io/myproperties/" target="_blank" rel="noopener">Website</a><a href="https://github.com/qub-official/myproperties" target="_blank" rel="noopener">GitHub</a></div>
+      </article>
+
+      <article class="card app reveal">
+        <div class="top">
+          <div class="icon"><img src="assets/mytraffic.svg" alt="" width="44" height="44" loading="lazy"></div>
+          <div><h4>myTraffic <span class="ko">마이트래픽</span></h4><div class="kind">Traffic workbench</div></div>
+        </div>
+        <p>A quiet, local-first workbench for inspecting and replaying web traffic.</p>
+        <ul>
+          <li>Intercept and inspect HTTP(S) locally</li>
+          <li>Replay and edit requests</li>
+          <li>No signup, no servers, no paid tiers</li>
+        </ul>
+        <div class="chips"><span class="chip">Go</span><span class="chip">HTML/CSS</span></div>
+        <div class="links"><a href="https://github.com/qub-official/myTraffic/releases/latest" target="_blank" rel="noopener">Download</a><a href="https://qub-official.github.io/myTraffic/" target="_blank" rel="noopener">Website</a><a href="https://github.com/qub-official/myTraffic" target="_blank" rel="noopener">GitHub</a></div>
+      </article>
+
+      <article class="card app reveal">
+        <div class="top">
+          <div class="icon"><img src="assets/copycut.png" alt="" width="44" height="44" loading="lazy"></div>
+          <div><h4>CopyCut <span class="ko">카피컷</span></h4><div class="kind">Video &amp; image studio</div></div>
+        </div>
+        <p>A video and image editor that runs fully offline, with no AI and no account.</p>
+        <ul>
+          <li>Multi-track timeline, keyframes, masks, LUTs</li>
+          <li>Photoshop-style layers in the image editor</li>
+          <li>Hardware-accelerated export with FFmpeg</li>
+        </ul>
+        <div class="chips"><span class="chip">Electron</span><span class="chip">WebGL</span><span class="chip">FFmpeg</span></div>
+        <div class="links"><span class="kind">Coming soon</span></div>
+      </article>
+
+      <article class="card app reveal" style="background:var(--surface-2);border-style:dashed;box-shadow:none;justify-content:center;text-align:center">
+        <div class="hand" style="font-size:28px;color:var(--accent-2);line-height:1.2">more coming soon…</div>
+        <p style="margin:10px 0 0">I'm always building something new. Follow along on GitHub and Instagram.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- STACK -->
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="card stack reveal">
+      <div><h4>Security</h4><div class="chips"><span class="chip">Web app testing</span><span class="chip">Recon automation</span><span class="chip">PoC writing</span></div></div>
+      <div><h4>Backend</h4><div class="chips"><span class="chip">Python</span><span class="chip">FastAPI</span><span class="chip">Rust</span><span class="chip">Docker</span></div></div>
+      <div><h4>Frontend</h4><div class="chips"><span class="chip">TypeScript</span><span class="chip">React</span><span class="chip">HTML/CSS</span></div></div>
+      <div><h4>Desktop</h4><div class="chips"><span class="chip">Tauri</span><span class="chip">Electron</span><span class="chip">pywebview</span><span class="chip">FFmpeg</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="wrap">
+    <div class="card contact reveal">
+      <span class="doodle d1">say hi ♡</span>
+      <span class="doodle d2">연락주세요 ✿</span>
+      <div class="eyebrow" style="justify-content:center"><span class="num">04</span> Contact</div>
+      <h2>Let's talk <span class="ko">연락</span></h2>
+      <p>Running a program, need a second pair of eyes on access control, or curious about one of my apps? Reach me through HackerOne or Instagram.</p>
+      <div class="cta">
+        <a class="btn primary" href="https://hackerone.com/qub" target="_blank" rel="noopener">
+          <i class="brand b-h1" aria-hidden="true"></i>
+          HackerOne
+        </a>
+        <a class="btn" href="https://github.com/qub-official" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.2.5-2.3 1.2-3.1-.1-.4-.5-1.6.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.6.2 2.8.1 3.2.8.8 1.2 1.9 1.2 3.1 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .5z"/></svg>
+          GitHub
+        </a>
+        <a class="btn" href="https://instagram.com/qub_official_" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".8" fill="currentColor"/></svg>
+          @qub_official_
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© <span id="y">2026</span> qub · formerly kellyblue</span>
+    <span class="hand" style="font-size:18px">made with 정성 (care) ♡</span>
+  </div>
+</footer>
+
+<dialog class="lb" id="lb" aria-label="Enlarged proof screenshot">
+  <div class="in">
+    <button type="button" id="lb-x" aria-label="Close">×</button>
+    <img id="lb-img" src="" alt="">
+    <p id="lb-cap"></p>
+  </div>
+</dialog>
+
+<script>
+(function(){
+  var lb=document.getElementById('lb'), li=document.getElementById('lb-img'), lc=document.getElementById('lb-cap');
+  document.querySelectorAll('.shot').forEach(function(b){
+    b.addEventListener('click',function(){
+      var img=b.querySelector('img');
+      li.src=img.src; li.alt=img.alt; lc.textContent=b.getAttribute('data-cap')||'';
+      if(lb.showModal) lb.showModal(); else window.open(img.src,'_blank');
+    });
+  });
+  document.getElementById('lb-x').addEventListener('click',function(){lb.close()});
+  lb.addEventListener('click',function(e){if(e.target===lb) lb.close()});
+})();
+(function(){
+  var root=document.documentElement, btn=document.getElementById('theme');
+  try{var s=localStorage.getItem('qub-theme'); if(s) root.setAttribute('data-theme',s);}catch(e){}
+  btn.addEventListener('click',function(){
+    var dark=root.getAttribute('data-theme')==='dark' ||
+      (!root.getAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches);
+    var next=dark?'light':'dark';
+    root.setAttribute('data-theme',next);
+    try{localStorage.setItem('qub-theme',next);}catch(e){}
+  });
+  document.getElementById('y').textContent=new Date().getFullYear();
+  var els=document.querySelectorAll('.reveal');
+  if(!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('in')});return;}
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(en){if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}});
+  },{threshold:.12});
+  els.forEach(function(e){io.observe(e)});
+})();
+</script>
+</body>
+</html>
